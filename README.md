@@ -1,30 +1,26 @@
 # Entrega-2---Data---Arianaa-Baldeon
-**1. Data 1:** _**IDH**_
-  - **Título:** Indice de Desarrollo Humano
-  - **Descripción:** Este indicador nos permitirá conocer el progreso de cada país. Resulta importante en este trabajo ya que los migrantes observan el nivel de desarrollo y progreso que tienen los países a los que deciden migrar.
+**1. Data 1:** _**MIGRACION NETA**_
+  - **Título:** Tasa neta de migración
+  - **Descripción:** Este indicador permitirá conocer el efecto neto que tiene la emigración y la inmigración en cada país. Al ser un indicador demográfico, mide la diferencia entre la tasa de inmigración y la tasa de emigración en un área geográfica durante un periodo de, generalmente, un año. Esta tasa se expresa como un número que puede ser positivo, negativo o cero. Se expresa comoo el aumento o la disminución por cada 1.000 habitantes del área durante un año determinado.
   - **Tipo de datos:** Cuantitativo continua
-  - **Fuente:** Datosmacro
+  - **Fuente:** World Bank
 
-**2. Data 2:** _**IDCV**_
-  - **Título:** Calidad de vida
-  - **Descripción:** El índice de calidad de vida nos permitirá medir el bienestar que percibe la ciudadanía con respecto al lugar en el que viven. Evalúa 4 dimensiones: vivienda, educación, salud y entorno.
-  - **Tipo de variable:** Categórica ordinal
-  - **Fuente:** Numbeo
+**2. Data 2:** _**POLITICAL STABILITY AND ABSENCE OF VIOLENCE/TERRORISM**_
+  - **Título:** Crisis política
+  - **Descripción:** Estos indicadores permitirán ver la calidad de la gobernanza, incluidos la estabilidad política, la ausencia de violencia y la efectividad del gobierno de cada país.
+  - **Tipo de variable:** Categórica nominal
+  - **Fuente:** WGI Indicators
 
- **3. Data 3:** _**free_express_est**_
-  - **Título:** Nivel de democracia
-  - **Descripción:** The Global State of Democracy Indices representa las tendencias democráticas a nivel nacional, regional y global para 174 países en 29 aspectos de la democracia entre 1975 y 2022. Para este trabajo nos concentramos en las regiones de Europa y Asia.
-  - **Tipo de variable:** cualitativa politómica
-  - **Fuente:** International Institute for Democracy and Electoral Assistance (International IDEA)
+ **3. Data 3:** _**DISPLACED PERSONS**_
+  - **Título:** Conflictos armados
+  - **Descripción:** La UNHCR permite ver los datos acerca del número de personas desplazadas forzosamente debido a conflictos y violencia en este caso de los países de América Latina y Europa. 
+  - **Tipo de variable:** cuantitativa discreta
+  - **Fuente:** UNHCR 
 
- **4. Data 4:** _**Valor**_
-  - **Título:** Migrantes en edad de trabajar 
-  - **Descripción:** Son todos los y las migrantes internacionales que tienen empleo o que están desempleados y buscan trabajo en el país en que residen
-  - **Tipo de variable:** Cuantitativa discreta
-  - **Fuente:** Rilostat
+ **4. Data 4:** _**GINI INDEX**_
+  - **Título:** Índice de Gini 
+  - **Descripción:** Mide la desigualdad en la distribución del ingreso de los países
+  - **Tipo de variable:** Cuantitativa continua 
+  - **Fuente:** World Bank
 
-**5. Data 5:** _**Alfabetización adultos**_
-  - **Título:** Refugiados
-  - **Descripción:** Son personas que salieron de sus países de origen por temor a los conflictos, las guerras, violencia generalizada, entre otras razones que hayan alterado sus vidas en su lugar de origen. Estas personas huyen a otros países en busca de protección y un mejor lugar para vivir
-  - **Tipo de variable:** Cuantitativa discreta
-  - **Fuente:** Datosmacro
+
