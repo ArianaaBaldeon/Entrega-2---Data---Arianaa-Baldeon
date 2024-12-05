@@ -1,0 +1,52 @@
+---
+title: "limpiando data 5"
+author: "Arianaa Baldeon"
+date: "2024-11-11"
+output: html_document
+---
+
+```{r}
+library(rio)
+data5= read_excel("INDICE_GINI.Xlsx")
+str(data5)
+```
+```{r}
+# Reemplazar ".." por "0" en todas las columnas de tipo carácter
+data5 <- data5 %>%
+  mutate(across(where(is.character), ~ gsub("\\.\\.", "0", .)))
+str(data5)
+
+```
+```{r}
+data5$YEAR_2019 = as.numeric(data5$YEAR_2019)
+data5$YEAR_2020 = as.numeric(data5$YEAR_2020)
+data5$YEAR_2021 = as.numeric(data5$YEAR_2021)
+data5$YEAR_2022 = as.numeric(data5$YEAR_2022)
+data5$YEAR_2023 = as.numeric(data5$YEAR_2023)
+
+data5 <- data5 %>%
+  mutate(across(where(is.numeric), round, 4))
+```
+```{r}
+library(tidyr)
+
+# Pivotar los datos para poner los años en una columna
+data5 <- data5 %>%
+  pivot_longer(
+    cols = starts_with("YEAR") | starts_with("2019"),  # Selecciona las columnas con los datos de Estimate y Rank
+    names_to = c(".value", "year"),  # Divide el nombre de la columna en "Year" y el valor de la columna
+    names_pattern = "(.*)_(.*)"  # El patrón extrae "Estimate" o "Rank" y el año (2019, 2020, etc.)
+  )
+
+# Ver los primeros registros después de pivotar
+head(data5)
+```
+```{r}
+colSums(is.na(data5))
+```
+
+
+
+
+
+

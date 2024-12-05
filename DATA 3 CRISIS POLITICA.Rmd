@@ -1,0 +1,82 @@
+---
+title: "limpieza data3"
+author: "Arianaa Baldeon"
+date: "2024-11-09"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(rio)
+library(readr)
+library(tidyr)
+library(readxl)
+
+# Cargar el archivo CSV (ajusta la ruta según corresponda)
+data3 = read_excel("CRISIS_POLITICA.Xlsx", sheet = "Political StabilityNoViolence", col_names = FALSE)  # Asegúrate de que no se asigne un nombre a las columnas
+
+colnames(data3)
+
+data_clean3 <- data3
+
+```
+```{r}
+head(data_clean3)
+
+```
+```{r}
+# Si no tienes los nombres de las columnas
+colnames(data_clean3) <- c("Country_Territory", "COUNTRY_CODE", "Estimate_2019", "Rank_2019", "Estimate_2020", "Rank_2020",
+                  "Estimate_2021", "Rank_2021", "Estimate_2022", "Rank_2022")
+
+```
+```{r}
+library(dplyr)
+
+data_clean3 <- data_clean3 %>%
+  mutate(across(everything(), ~na_if(., "#N/A")))  # Reemplazar #N/A por NA en todas las columnas
+
+data_clean3 <- data_clean3[-(1:2), ]
+head(data_clean3)
+
+```
+```{r}
+library(tidyr)
+
+# Pivotar los datos para poner los años en una columna
+df_long <- data_clean3 %>%
+  pivot_longer(
+    cols = starts_with("Estimate") | starts_with("Rank"),  # Selecciona las columnas con los datos de Estimate y Rank
+    names_to = c(".value", "year"),  # Divide el nombre de la columna en "Year" y el valor de la columna
+    names_pattern = "(.*)_(.*)"  # El patrón extrae "Estimate" o "Rank" y el año (2019, 2020, etc.)
+  )
+
+# Ver los primeros registros después de pivotar
+head(df_long)
+
+```
+```{r}
+colSums(is.na(df_long))
+# Eliminar filas con cualquier NA
+df_long <- na.omit(df_long)
+
+
+```
+```{r}
+colSums(is.na(df_long))
+str(df_long)
+# Convertir una columna específica de carácter a numérico
+df_long$Estimate <- as.numeric(df_long$Estimate)
+df_long$Rank = as.numeric(df_long$Rank)
+```
+```{r}
+str(df_long)
+```
+```{r}
+df_long <- df_long %>%
+  mutate(across(where(is.numeric), round, 4))
+```
+
+
+
+
+

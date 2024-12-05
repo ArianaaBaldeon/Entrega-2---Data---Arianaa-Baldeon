@@ -1,0 +1,719 @@
+---
+title: "Factores que influyeron en la migración de personas en países de Europa, Asia central y América Latina y el Caribe"
+author: Arianaa Baldeon
+output: 
+  flexdashboard::flex_dashboard:
+    theme: journal
+    social: menu
+    source_code: embed
+---
+
+```{r setup, include = FALSE}
+library(flexdashboard)
+library(shiny)
+library(jsonlite)
+#library(maptools)
+library(ggplot2)
+library(tidyr)
+library(dplyr)
+library(purrr)
+library(leaflet)
+library(plotly)
+library(rio)
+library(readxl)
+
+setwd("C:/Users/arian/OneDrive/Documentos/TRABAJO ESTADISTICA FINAL DASHNOARD")
+library(rio)
+library(readr)
+library(readxl)
+data = read_excel("DATA2024MIGRACION.Xlsx")
+
+str(data)
+data$year= as.numeric(data$year)
+data$INDICE_DEMOCRACIA= as.numeric(data$INDICE_DEMOCRACIA)
+data$Procesoelectoral_y_pluralismo= as.numeric(data$Procesoelectoral_y_pluralismo)
+data$Funcionamiento_del_gobierno= as.numeric(data$Funcionamiento_del_gobierno)
+data$participacion_politica= as.numeric(data$participacion_politica)
+data$cultura_politica= as.numeric(data$cultura_politica)
+data$derechos_civiles= as.numeric(data$derechos_civiles)
+```
+
+Europa - Asia Central - América Latina y el Caribe{data-icon="fa-signal"}
+===================================== 
+Column {data-width=650}
+-----------------------------------------------------------------------
+
+### Migración neta en los países 
+
+```{r}
+library(plotly)
+library(dplyr)
+
+# Crear un mapa con años interactivos
+fig <- plot_ly(data = data, 
+               type = "choropleth",
+               locations = ~COUNTRY_CODE,
+               #frame = ~year,  # Agregar el año como una dimensión interactiva
+               z = ~MIGRACIONNETA,
+               text = ~paste("País:", COUNTRY_NAME, "<br>Año:", year,"<br>Renta nacional per capita en dólares:", Renta_nacional_brutapercapita_dolares,
+                             "<br>Migración Neta:", MIGRACIONNETA),
+               colorscale = "Viridis",
+               colorbar = list(title = "Migración Neta")) %>%
+  layout(title = "Mapa Mundial de Migración Neta por País en el 2022",
+         geo = list(projection = list(type = 'natural earth'),
+                    showframe = FALSE))
+
+fig
+```
+
+Column {data-width=350}
+-----------------------------------------------------------------------
+
+### Número de países respecto a sus tipos de régimenes 
+
+```{r}
+library(ggplot2)
+library(plotly)
+
+data_TR <- data %>%
+  filter(!is.na(Tipo_regimen)) 
+
+# Reemplaza 'tipo_regimen' con el nombre real de tu variable en los datos
+
+data_TR$Tipo_regimen <- factor(data_TR$Tipo_regimen, 
+                                    levels = c(1, 2, 3, 4),
+                                    labels = c("Democracia Plena", 
+                                               "Democracia Deficiente", 
+                                               "Regímenes Híbridos", 
+                                               "Regímenes Autoritarios"))
+
+# Creamos un histograma con ggplot2
+ggplot(data_TR, aes(x = Tipo_regimen, fill = Tipo_regimen)) +
+  geom_bar() +  # Usa geom_bar() para contar observaciones por categoría
+  scale_fill_manual(values = c("Democracia Plena" = "#28b463",       # Azul
+                               "Democracia Deficiente" = "#e67e22",  # Naranja
+                               "Regímenes Híbridos" = "#F08080",     # Verde
+                               "Regímenes Autoritarios" = "#CD5C5C") # Rojo
+  ) +
+  labs(title = "Distribución de Países por Tipo de Régimen",
+       x = "Tipo de Régimen",
+       y = "frecuencia",
+       fill = "Tipo de Régimen") +  # Leyenda
+  theme_minimal(base_size = 14) +
+  theme(legend.position = "right", 
+        plot.title = element_text(face = "bold", size = 18),
+        axis.title = element_text(size = 14))
+
+```
+
+### Ranking de países con estabilidad política y ausencia de violencia
+```{r}
+library(corrplot)
+library(performance)
+library(dplyr)
+
+# Matriz de correlación
+
+corr_matrix=cor(data %>%select(IDH, INDICE_GINI, INDICE_DEMOCRACIA,Renta_nacional_brutapercapita_dolares), use = "complete.obs")
+
+# Gráfico de correlación
+corrplot(corr_matrix, method = "circle", type = "upper", tl.cex = 0.8,
+         title = "Matriz de Correlación")
+
+```
+
+Column {data-width=350}
+-----------------------------------------------------------------------
+### Ranking de países con estabilidad política y ausencia de violencia
+```{r}
+# Instalar y cargar las librerías necesarias
+if (!require("wordcloud2")) install.packages("wordcloud2")
+#if (!require("dplyr")) install.packages("dplyr")
+library(wordcloud2)
+library(dplyr)
+
+# Filtrar y preparar los datos: países y rank
+wordcloud_data <- data %>%
+  select(COUNTRY_NAME, Rank) %>%          # Seleccionar columnas relevantes
+  filter(!is.na(Rank))            # Eliminar valores faltantes
+
+# Normalizar los valores de rank para ser usados como frecuencias
+wordcloud_data <- wordcloud_data %>%
+  mutate(rank_scaled = scales::rescale(Rank, to = c(10, 100)))  # Escalar rank para mejor visualización
+
+# Crear el Word Cloud
+wordcloud2(
+  data = wordcloud_data %>% select(COUNTRY_NAME, rank_scaled),  # Seleccionar columnas relevantes para el Word Cloud
+  size = 1,              # Tamaño global del Word Cloud
+  color = "random-light", # Colores aleatorios claros
+  backgroundColor = "#96305a" # Fondo negro para contraste
+)
+
+```
+
+1. Variable central {data-icon="fa-signal"}
+===================================== 
+
+Column {data-width=500}
+-----------------------------------------------------------------------
+
+### Histograma de la cantidad de migrantes o desplazados
+```{r}
+dataprimerapart= data[complete.cases(data),]
+
+# Crear un histograma
+hist(dataprimerapart$MIGRACIONNETA, main = "histograma de migración", col = "lightblue", border = "black", xlab = "Desplazamiento")
+
+# Añadir líneas para mostrar la media 
+abline(v = mean(dataprimerapart$MIGRACIONNETA), col = "red", lty = 2, lwd = 2)  # Línea para la media
+
+
+# Añadir texto para mostrar la media 
+text(mean(dataprimerapart$MIGRACIONNETA), 10, "Media", col = "red", pos = 4)
+
+```
+
+Column {data-width=500} {.tabset}
+-----------------------------------------------------------------------
+
+### Tabla de frecuencias
+
+```{r}
+
+# Tabla de frecuencias
+
+library(psych)
+summary(dataprimerapart$MIGRACIONNETA)
+
+# Resumen gráfico
+describe(dataprimerapart$MIGRACIONNETA)
+
+quantile(dataprimerapart$MIGRACIONNETA, c(0.25, 0.5, 0.75))
+
+```
+
+
+### Gráfico de densidad 
+```{r}
+# Gráfico de densidad
+plot(density(dataprimerapart$MIGRACIONNETA), main = "Gráfico de Densidad de población migrante en Europa y Asia", ylab = "Densidad", col = "orange", lwd = 2)
+```
+
+### Boxplot
+```{r}
+# Diagrama de caja
+boxplot(dataprimerapart$MIGRACIONNETA, main = "Diagrama de Caja de cantidad de migrantes en Europa,América Latina y Asia Central",ylim = c(-6673580, 942445), ylab = "Migración neta", col = "lightgreen")
+```
+
+2. Correlación (VARIABLE DEPENDIENTE vs VARIABLES INDEPENDIENTES) {data-icon="fa-signal"}
+===================================== 
+
+Column {data-width=750} {.tabset}
+-----------------------------------------------------------------------
+
+### Porcentaje de Desarrollo Humano percibido por las personas migrantes en sus paises 
+
+```{r}
+library(ggplot2)
+
+base=ggplot(data = data, aes(x=IDH, y=MIGRACIONNETA))
+scatter = base + geom_point()
+library(ggrepel)
+scatterText = scatter + geom_text_repel(aes(label=COUNTRY_NAME),size=2)
+scatterText
+
+```
+
+### Porcentaje de Índice de Gini
+
+```{r}
+library(ggplot2)
+
+base=ggplot(data=data, aes(x=INDICE_GINI, y=MIGRACIONNETA))
+scatter = base + geom_point()
+library(ggrepel)
+scatterText = scatter + geom_text_repel(aes(label=COUNTRY_NAME),size=2)
+scatterText
+
+
+```
+
+### Nivel de democracia
+
+```{r}
+library(ggplot2)
+
+base=ggplot(data=data, aes(x=INDICE_DEMOCRACIA, y=MIGRACIONNETA))
+scatter3 = base + geom_point()
+library(ggrepel)
+scatterText3 = scatter3 + geom_text_repel(aes(label=COUNTRY_NAME),size=2)
+scatterText3
+```
+
+
+### DESPLAZADOS POR CONFLICTOS 
+
+```{r}
+library(ggplot2)
+
+base=ggplot(data=data, aes(x=TotalDESPLAZADOS_CA, y=MIGRACIONNETA))
+scatter4 = base + geom_point()
+library(ggrepel)
+scatterText4 = scatter4 + geom_text_repel(aes(label=COUNTRY_NAME),size=2)
+scatterText4
+```
+
+### RENTA NACIONAL 
+
+```{r}
+library(ggplot2)
+
+base=ggplot(data=data, aes(x=Renta_nacional_brutapercapita_dolares, y=MIGRACIONNETA))
+scatter5 = base + geom_point()
+library(ggrepel)
+scatterText5 = scatter5 + geom_text_repel(aes(label=COUNTRY_NAME),size=2)
+scatterText5
+```
+
+### esperanza de vida al nacer 
+
+```{r}
+library(ggplot2)
+
+base=ggplot(data=data, aes(x=Esperanza_de_vida_al_nacer_años, y=MIGRACIONNETA))
+scatter6 = base + geom_point()
+library(ggrepel)
+scatterText6 = scatter6 + geom_text_repel(aes(label=COUNTRY_NAME),size=2)
+scatterText6
+```
+
+
+Column {data-width=250} {.tabset}
+-----------------------------------------------------------------------
+### IDH
+
+```{r}
+library(corrplot)
+cor.test(data$MIGRACIONNETA, data$IDH, method = c("spearman"))
+```
+
+
+### ÍNDICE DE GINI
+
+```{r}
+cor.test(data$MIGRACIONNETA, data$INDICE_GINI, method = c("spearman"))
+```
+
+
+### NIVEL DE DEMOCRACIA
+
+```{r}
+cor.test(data$MIGRACIONNETA, data$INDICE_DEMOCRACIA, method = c("spearman"))
+```
+
+
+### DESPLAZADOS POR CONFLICTOS
+
+```{r}
+cor.test(data$MIGRACIONNETA, data$TotalDESPLAZADOS_CA, method = c("spearman"))
+```
+
+
+### RENTA NACIONAL
+
+```{r}
+cor.test(data$MIGRACIONNETA, data$Renta_nacional_brutapercapita_dolares, method = c("spearman"))
+```
+
+
+### ESPERANZA DE VIDA AL NACER
+
+```{r}
+
+cor.test(data$MIGRACIONNETA, data$Esperanza_de_vida_al_nacer_años, method = c("spearman"))
+```
+3. Regresiones {data-icon="fa-signal"}
+===================================== 
+
+Column {data-width=500} {.tabset}
+-----------------------------------------------------------------------
+
+### Regresión Gaussiana -> Hipotesis 1: A nivel continental, la migración neta de las personas está afectada por el respeto a sus derechos civiles.
+```{r}
+library(knitr)
+library(modelsummary)
+
+h1GAUSS=formula(MIGRACIONNETA~derechos_civiles)
+
+rl1=lm(h1GAUSS, data = dataprimerapart)
+
+model1=list('OLS Migrantes (I)'=rl1)
+modelsummary(model1, title = "Resumen de Regresion Lineal",
+             stars = TRUE,
+             output = "kableExtra")
+```
+
+
+### Analizando regresión gaussiana -> Hipotesis 2: A nivel continental, la migración neta de personas está afectada por el respeto a sus derechos civiles, el desarrollo humano en sus paises, el índice de gini, la estimación de la gobernanza en sus paises de origen, su indice de democracia y la renta nacional anual en dólares. 
+```{r}
+library(knitr)
+library(modelsummary)
+
+h2GAUSS=formula(MIGRACIONNETA ~ derechos_civiles + IDH + INDICE_GINI + Estimate + INDICE_DEMOCRACIA+Renta_nacional_brutapercapita_dolares)
+
+rl2=lm(h2GAUSS, data = dataprimerapart)
+
+modelslm=list('OLS migrantes (I)'=rl1,'OLS migrantes (II)'=rl2)
+modelsummary(modelslm, title = "Regresiones Lineales",
+             stars = TRUE,
+             output = "kableExtra")
+```
+
+### Analizando regresión gaussiana
+
+```{r}
+par(mfrow = c(2, 2))  
+plot(rl2, 1,caption = '');title(main="Linealidad")
+plot(rl2, 2, caption = '');title(main="Normalidad")
+plot(rl2, 3, caption = '');title(main="Homocedasticidad")
+plot(rl2, 5, caption = '');title(main="Influyentes")
+```
+
+### Analizando la variable dependiente
+
+```{r}
+library(ggplot2)
+VarDep=dataprimerapart$MIGRACIONNETA
+descris=list(min=min(VarDep),
+             max=max(VarDep),
+             media=round(mean(VarDep),2),
+             var=round(var(VarDep),2),
+             asim=round(e1071::skewness(VarDep),2),
+             kurt=round(e1071::kurtosis(VarDep),2))
+
+base=ggplot(data=data, aes(x=MIGRACIONNETA)) + theme_classic()
+hist=base + geom_histogram(bins=10)
+histInfo=hist + annotate("text", x = 6000000, y = 1000,
+                         color='grey50',
+                       label = paste0("Minimo: ",descris$min))
+histInfo = histInfo + annotate("text", x = 6000000, y = 900,
+                       color='grey50',
+                       label = paste0("Máximo: ",descris$max))
+
+histInfo = histInfo + annotate("text", x = 6000000, y = 650,
+                       color='grey50',
+                       label = paste0("Media: ",descris$media))
+
+histInfo = histInfo + annotate("text", x = 6000000, y = 500,
+                       color='grey50',
+                       label = paste0("Varianza: ",descris$var))
+
+histInfo = histInfo + annotate("text", x = 6000000, y = 350,
+                       color='grey50',
+                       label = paste0("Asimetría: ",descris$asim))
+
+histInfo = histInfo + annotate("text", x = 6000000, y = 200,
+                       color='grey50',
+                       label = paste0("Curtosis: ",descris$kurt))
+
+histInfo
+```
+
+### Tests de normalidad
+
+```{r}
+library(dplyr)
+library(tidyr)
+
+testshapiro <- shapiro.test(dataprimerapart$MIGRACIONNETA)
+
+testKS <- ks.test(dataprimerapart$MIGRACIONNETA,'pnorm')
+
+resultados <- dataprimerapart %>%
+  summarise(testshapiro$p.value,
+            testKS$p.value,
+            testKS$statistic)
+resultados
+```
+
+
+
+Column {data-width=500} {.tabset}
+-----------------------------------------------------------------------
+### Regresión Poisson -> Hipoótesis: la cantidad de personas desplazadas está afectada por el desarrollo humano, el indice de Gini y la migración neta de personas 
+
+```{r}
+# Asegúrate de que los datos necesarios estén disponibles
+# Creamos la fórmula para el segundo modelo
+poisson_data <- data %>%
+  filter(!is.na(TotalDESPLAZADOS_CA) & 
+         !is.na(IDH) & 
+         !is.na(INDICE_GINI) & 
+         !is.na(MIGRACIONNETA))
+
+
+h1poisson <- formula(TotalDESPLAZADOS_CA ~ IDH + INDICE_GINI + MIGRACIONNETA)
+
+# Ajustamos la regresión de Poisson con offset
+rp1 <- glm(h1poisson, data = poisson_data, 
+           #offset = log(poblacion_Total), # Cambia "poblacion_Total" por la columna correspondiente
+           family = poisson(link = "log"))
+
+# Lista de modelos para comparar (incluye un modelo rp1 si lo tienes ajustado previamente)
+modelsPois <- list('POISSON desplazados (I)' = rp1)          # Modelo rp1
+
+# Usar la librería modelsummary para comparar modelos
+#if (!require("modelsummary")) install.packages("modelsummary")
+library(modelsummary)
+
+modelsummary(modelsPois, 
+             title = "Regresiones Poisson Anidadas",
+             stars = TRUE,
+             output = "kableExtra")
+
+```
+
+```{r}
+# mas simple:
+cbind(exp(coef(rp1)),exp(confint(rp1)))
+```
+
+### Equidispersión?
+
+```{r}
+library(magrittr)
+library(knitr)
+overdispersion=AER::dispersiontest(rp1,alternative='greater')$ p.value<0.05
+underdispersion=AER::dispersiontest(rp1,alternative='less')$ p.value<0.05
+# tabla
+testResult=as.data.frame(rbind(overdispersion,underdispersion))
+names(testResult)='Es probable?'
+testResult%>%kable(caption = "Test de Equidispersión")%>%kableExtra::kable_styling()
+```
+### Comparando modelos 1
+```{r}
+library(MASS)
+h1off=formula(TotalDESPLAZADOS_CA ~ IDH + INDICE_GINI + MIGRACIONNETA)
+
+rbn=glm.nb(h1off,data=poisson_data)
+
+modelsQP_BN=list('Poisson asegurados (II)'=rp1,
+                 'Binomial Negativa asegurados (II)'=rbn)
+
+library(modelsummary)
+library(kableExtra)
+modelsummary(modelsQP_BN,
+             #fmt = formatoNum,
+             exponentiate = T, 
+             statistic = 'conf.int',
+             title = "EXP() de la Regresiones Poisson y Binomial Negativa",
+             stars = TRUE,
+             output = "kableExtra")
+```
+
+### Comparando modelos 2
+
+```{r}
+anova(rp1,rbn, test = "Chisq") %>%
+kable(caption = "Tabla ANOVA para comparar modelos")%>%kableExtra::kable_styling(full_width = FALSE)
+```
+
+
+### Comparando modelos 3
+
+```{r}
+library(ggplot2)
+dotwhisker::dwplot(list(Poisson=rp1,BinomialNegativa=rbn),exp=T) + scale_y_discrete(labels=c("MIGRACION NETA","INDICE DE GINI", "IDH")) + scale_color_discrete(name="Modelos para:\nCantidad de desplazados") + geom_vline(
+           xintercept = 1,
+           colour = "grey60",
+           linetype = 2
+       )
+```
+
+
+### Gráfico
+
+```{r}
+library(plotly)
+# Resumen del modelo
+summary(rbn)
+
+# Realizar predicciones
+poisson_data <- poisson_data %>%
+  mutate(predicted = predict(rbn, type = "response"))
+
+# Visualizar predicciones vs valores observados
+GRAFICOPOISSON = ggplot(poisson_data, aes(x = TotalDESPLAZADOS_CA, y = predicted)) +
+  geom_point() +  # Puntos de dispersión
+  geom_smooth(method = "lm", se = FALSE, color = "orange") +  # Línea de regresión
+  geom_text(aes(label = COUNTRY_NAME), vjust = -0.5, hjust = 1.5, size = 3) +  # Agregar etiquetas de los países
+  labs(title = "Regresión de Poisson: Valores Observados vs Predichos",
+       x = "Valores Observados",
+       y = "Valores Predichos") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))  # Rotar etiquetas del eje X si es necesario
+# Convertir el gráfico de ggplot a interactivo con plotly
+GP_interactivo <- ggplotly(GRAFICOPOISSON)
+
+# Mostrar el gráfico interactivo
+GP_interactivo
+```
+
+4. Análisis de conglomerados {data-icon="fa-signal"}
+===================================== 
+
+Column {data-width=500} {.tabset}
+-----------------------------------------------------------------------
+### BOXPLOT 1
+```{r}
+boxplot(dataprimerapart[,c(4:5, 9, 13:14)], method='standardize',horizontal = F,las=2,cex.axis = 0.5)
+```
+
+### BOXPLOT 2
+```{r}
+library(BBmisc)
+library(ggplot2)
+boxplot(normalize(dataprimerapart[,c(4:5, 9, 13:14)],method='range',range=c(0,10)))
+```
+
+### BOXPLOT 3
+```{r}
+library(BBmisc)
+library(ggplot2)
+boxplot(normalize(dataprimerapart[,c(4:5, 9, 13:14)],method='standardize'))
+```
+
+### CORRELACION
+```{r}
+library(ggplot2)
+library(GGally)
+library(ggcorrplot)
+CORCLAUS = cor(dataprimerapart[,c(4:5, 9, 13:14)])
+
+# Usando ggcorrplot para una visualización atractiva
+ggcorrplot(CORCLAUS, 
+           method = "circle",    # Usa círculos para las correlaciones
+           type = "full",       # Muestra solo la mitad inferior
+           lab = TRUE,           # Agrega los valores de correlación a los círculos
+           colors = c("blue", "white", "red"),  # Colores para las correlaciones negativas, cero y positivas
+           title = "Matriz de Correlación",    # Título
+           ggtheme = theme_minimal())          # Estilo minimalista
+
+
+```
+
+Column {data-width=500} {.tabset}
+-----------------------------------------------------------------------
+```{r}
+#library(dplyr)
+#dataClus=dataprimerapart[,c(4:5, 9, 13:14)]
+#row.names(dataClus)=dataprimerapart$COUNTRY_NAME
+
+library(tibble)
+dataClus <- dataprimerapart[, c(4:5, 9, 13:14)]
+dataClus <- rownames_to_column(as.data.frame(dataClus), var = "COUNTRY_NAME")
+```
+```{r}
+
+dataClus$COUNTRY_NAME=as.numeric(dataClus$COUNTRY_NAME)
+#str(dataClus)
+```
+```{r}
+library(cluster)
+g.dist = daisy(dataClus, metric="gower")
+```
+
+### PAM
+```{r}
+library(factoextra)
+library(ggplot2)
+fviz_nbclust(dataClus, pam,diss=g.dist,method = "gap_stat",k.max = 10,verbose = F)
+```
+
+### PAM - agrupamiento y clasificación de las observaciones en 4 grupos basados en la matriz de distancia
+```{r}
+library(kableExtra)
+set.seed(123)
+res.pam=pam(g.dist,4,cluster.only = F)
+
+#nueva columna
+dataClus$pam=res.pam$cluster
+
+# ver
+
+head(dataClus,15)%>%kbl()%>%kable_styling()
+```
+
+### Países con baja cohesión de cluster?
+```{r}
+silPAM=data.frame(res.pam$silinfo$widths)
+silPAM$country_name=row.names(silPAM)
+poorPAM=silPAM[silPAM$sil_width<0,'país']%>%sort()
+poorPAM
+```
+### Gráfica
+```{r}
+fviz_silhouette(res.pam,print.summary = F)
+```
+
+### AGNES
+```{r}
+fviz_nbclust(dataClus, hcut,diss=g.dist,method = "gap_stat",k.max = 10,verbose = F,hc_func = "agnes")
+```
+
+### AGNES - agrupamiento y clasificación de las observaciones en 4 grupos basados en la matriz de distancia - métodos de clustering jerárquico aglomerativo
+```{r}
+set.seed(123)
+library(factoextra)
+
+res.agnes<- hcut(g.dist, k = 4,hc_func='agnes',hc_method = "ward.D")
+
+dataClus$agnes=res.agnes$cluster
+
+# ver
+
+head(dataClus,15)%>%kbl()%>%kable_styling()
+```
+
+### Países con baja cohesión de cluster?
+```{r}
+silAGNES=data.frame(res.agnes$silinfo$widths)
+silAGNES$country=row.names(silAGNES)
+poorAGNES=silAGNES[silAGNES$sil_width<0,'país']%>%sort()
+poorAGNES
+```
+### Gráfico
+```{r}
+fviz_silhouette(res.agnes,print.summary = F)
+```
+
+### DIANA
+```{r}
+fviz_nbclust(dataClus, hcut,diss=g.dist,method = "gap_stat",k.max = 10,verbose = F,hc_func = "diana")
+```
+
+### DIANA - agrupamiento y clasificación de las observaciones en 4 grupos basados en la matriz de distancia - métodos de clustering jerárquico aglomerativo
+```{r}
+set.seed(123)
+res.diana <- hcut(g.dist, k = 4,hc_func='diana')
+dataClus$diana=res.diana$cluster
+# veamos
+head(dataClus,150)%>%kbl%>%kable_styling()
+```
+
+### Países con baja cohesión de cluster?
+```{r}
+silDIANA=data.frame(res.diana$silinfo$widths)
+silDIANA$country=row.names(silDIANA)
+poorDIANA=silDIANA[silDIANA$sil_width<0,'país']%>%sort()
+poorDIANA
+```
+
+### Gráfico
+```{r}
+fviz_silhouette(res.diana,print.summary = F)
+```
+
+
+
+

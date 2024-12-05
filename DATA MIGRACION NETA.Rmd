@@ -1,0 +1,37 @@
+---
+title: "Limpiando data 4"
+author: "Arianaa Baldeon"
+date: "2024-11-11"
+output: html_document
+---
+
+```{r}
+library(rio)
+library(readr)
+library(tidyr)
+data4 = read_excel("MIGRACION_NETA.Xlsx")
+```
+```{r}
+str(data4)
+```
+```{r}
+library(tidyr)
+
+# Pivotar los datos para poner los años en una columna
+data_clean4 <- data4 %>%
+  pivot_longer(
+    cols = starts_with("YEAR") | starts_with("2019"),  # Selecciona las columnas con los datos de Estimate y Rank
+    names_to = c(".value", "year"),  # Divide el nombre de la columna en "Year" y el valor de la columna
+    names_pattern = "(.*)_(.*)"  # El patrón extrae "Estimate" o "Rank" y el año (2019, 2020, etc.)
+  )
+
+# Ver los primeros registros después de pivotar
+head(data_clean4)
+```
+```{r}
+colSums(is.na(data_clean4))
+```
+
+
+
+

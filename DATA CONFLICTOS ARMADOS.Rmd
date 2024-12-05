@@ -1,0 +1,88 @@
+---
+title: "limpiando data 1"
+author: "Arianaa Baldeon"
+date: "2024-11-09"
+output: html_document
+---
+
+CONFLICTOS ARMADOS AMERICA
+```{r}
+library(rio)
+library(readr)
+library(tidyr)
+
+# Cargar el archivo CSV (ajusta la ruta según corresponda)
+data1<- read_csv("CONFLICTOS_ARMADOS_AMERICA.csv", col_names = FALSE)  # Asegúrate de que no se asigne un nombre a las columnas
+
+data_clean1 <- data1 %>%
+  separate(X1, into = c("Year", "Country_of_origin", "COUNTRY_CODE", "Country_of_asylum", "Country_of_asylum_ISO", "Total"), sep = ",")
+
+colnames(data_clean1)
+```
+```{r}
+# Eliminar columnas innecesarias (por ejemplo, las que contienen guiones)
+data_clean1 <- data_clean1 %>%
+  select(Year, Country_of_origin, COUNTRY_CODE, Total) %>%
+  filter(Total != "-")  # Eliminar filas con guiones en la columna Total
+
+```
+```{r}
+# Convertir "Year" y "Total" a numérico
+data_clean1$Year <- as.numeric(data_clean1$Year)
+data_clean1$Total <- as.numeric(data_clean1$Total)
+
+# Verificar los primeros registros
+head(data_clean1)
+
+```
+```{r}
+
+data_clean1 <- data_clean1[-(1:3), ]
+head(data_clean1)
+```
+
+CONFLICTOS ARMADOS EUROPA
+```{r}
+library(rio)
+library(readr)
+library(tidyr)
+
+# Cargar el archivo CSV (ajusta la ruta según corresponda)
+data2 <- read_csv("CONFLICTOS_ARMADOS_EUROPA.csv", col_names = FALSE)  # Asegúrate de que no se asigne un nombre a las columnas
+
+data_clean2 <- data2 %>%
+  separate(X1, into = c("Year", "Country_of_origin", "COUNTRY_CODE", "Country_of_asylum", "Country_of_asylum_ISO", "Total"), sep = ",")
+
+colnames(data_clean2)
+```
+```{r}
+# Eliminar columnas innecesarias (por ejemplo, las que contienen guiones)
+data_clean2 <- data_clean2 %>%
+  select(Year, Country_of_origin, COUNTRY_CODE, Total) %>%
+  filter(Total != "-")  # Eliminar filas con guiones en la columna Total
+
+```
+```{r}
+# Convertir "Year" y "Total" a numérico
+data_clean2$Year <- as.numeric(data_clean2$Year)
+data_clean2$Total <- as.numeric(data_clean2$Total)
+
+# Verificar los primeros registros
+head(data_clean2)
+```
+```{r}
+data_clean2 <- data_clean2[-(1), ]
+head(data_clean2)
+```
+DATA COMBINADA DE CONFLICTOS ARMADOS 
+```{r}
+# Combinar las filas de df2 con df1
+DATADESPLAZADOS_CONFLICTOS_ARMADOS_AMEU <- bind_rows(data_clean1, data_clean2)
+
+# Unir df1 y df2 por la columna 'Country/Territory'
+#DATA_CONFLICTOS_ARMADOS_AMEU <- merge(data_clean1, data_clean2, by = "COUNTRY_CODE")
+
+```
+
+
+
